@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.GonglueLiuyanDao">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        a.id as id
+        ,a.gonglue_id as gonglueId
+        ,a.yonghu_id as yonghuId
+        ,a.gonglue_liuyan_text as gonglueLiuyanText
+        ,a.insert_time as insertTime
+        ,a.create_time as createTime
+    </sql>
+    <select id="selectListView" parameterType="map" resultType="com.entity.view.GonglueLiuyanView" >
+        SELECT
+        <include refid="Base_Column_List" />
+
+--         级联表的字段
+        ,gonglue.gonglue_name as gonglueName
+        ,gonglue.gonglue_photo as gongluePhoto
+        ,gonglue.gonglue_types as gonglueTypes
+        ,gonglue.yonghu_id as gonglueYonghuId
+        ,gonglue.gonglue_content as gonglueContent
+        ,gonglue.gonglue_delete as gonglueDelete
+        ,yonghu.yonghu_name as yonghuName
+        ,yonghu.yonghu_phone as yonghuPhone
+        ,yonghu.yonghu_id_number as yonghuIdNumber
+        ,yonghu.yonghu_photo as yonghuPhoto
+        ,yonghu.yonghu_email as yonghuEmail
+        ,yonghu.new_money as newMoney
+
+        FROM gonglue_liuyan  a
+        left JOIN gonglue gonglue ON a.gonglue_id = gonglue.id
+        left JOIN yonghu yonghu ON a.yonghu_id = yonghu.id
+
+        <where>
+            <if test="params.ids != null">
+                and a.id in
+                <foreach item="item" index="index" collection="params.ids" open="(" separator="," close=")">
+                #{item}
+                </foreach>
+            </if>
+            <if test="params.gonglueId != null and params.gonglueId != ''">
+                and (
+                    a.gonglue_id = #{params.gonglueId}
+                )
+            </if>
+            <if test="params.yonghuId != null and params.yonghuId != ''">
+                and (
+                    a.yonghu_id = #{params.yonghuId}
+                    or gonglue.yonghu_id = #{params.yonghuId}
+                )
+            </if>
+            <if test=" params.gonglueLiuyanText != '' and params.gonglueLiuyanText != null and params.gonglueLiuyanText != 'null' ">
+                and a.gonglue_liuyan_text like CONCAT('%',#{params.gonglueLiuyanText},'%')
+            </if>
+            <if test=" params.insertTimeStart != '' and params.insertTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) >= UNIX_TIMESTAMP(#{params.insertTimeStart}) ]]>
+            </if>
+            <if test=" params.insertTimeEnd != '' and params.insertTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) <= UNIX_TIMESTAMP(#{params.insertTimeEnd}) ]]>
+            </if>
+
+                <!-- 判断攻略信息的id不为空 -->
+            <if test=" params.gonglueIdNotNull != '' and params.gonglueIdNotNull != null and params.gonglueIdNotNull != 'null' ">
+                and a.gonglue_id IS NOT NULL
+            </if>
+            <if test=" params.gonglueName != '' and params.gonglueName != null and params.gonglueName != 'null' ">
+                and gonglue.gonglue_name like CONCAT('%',#{params.gonglueName},'%')
+            </if>
+            <if test="params.gonglueTypes != null  and params.gonglueTypes != ''">
+                and gonglue.gonglue_types = #{params.gonglueTypes}
+            </if>
+
+            <if test=" params.gonglueContent != '' and params.gonglueContent != null and params.gonglueContent != 'null' ">
+                and gonglue.gonglue_content like CONCAT('%',#{params.gonglueContent},'%')
+            </if>
+            <if test="params.gonglueDeleteStart != null  and params.gonglueDeleteStart != '' ">
+                <![CDATA[  and gonglue.gonglue_delete >= #{params.gonglueDeleteStart}   ]]>
+            </if>
+            <if test="params.gonglueDeleteEnd != null  and params.gonglueDeleteEnd != '' ">
+                <![CDATA[  and gonglue.gonglue_delete <= #{params.gonglueDeleteEnd}   ]]>
+            </if>
+            <if test="params.gonglueDelete != null  and params.gonglueDelete != '' ">
+                and gonglue.gonglue_delete = #{params.gonglueDelete}
+            </if>
+                <!-- 判断用户的id不为空 -->
+            <if test=" params.yonghuIdNotNull != '' and params.yonghuIdNotNull != null and params.yonghuIdNotNull != 'null' ">
+                and a.yonghu_id IS NOT NULL
+            </if>
+            <if test=" params.yonghuName != '' and params.yonghuName != null and params.yonghuName != 'null' ">
+                and yonghu.yonghu_name like CONCAT('%',#{params.yonghuName},'%')
+            </if>
+            <if test=" params.yonghuPhone != '' and params.yonghuPhone != null and params.yonghuPhone != 'null' ">
+                and yonghu.yonghu_phone like CONCAT('%',#{params.yonghuPhone},'%')
+            </if>
+            <if test=" params.yonghuIdNumber != '' and params.yonghuIdNumber != null and params.yonghuIdNumber != 'null' ">
+                and yonghu.yonghu_id_number like CONCAT('%',#{params.yonghuIdNumber},'%')
+            </if>
+            <if test=" params.yonghuEmail != '' and params.yonghuEmail != null and params.yonghuEmail != 'null' ">
+                and yonghu.yonghu_email like CONCAT('%',#{params.yonghuEmail},'%')
+            </if>
+            <if test="params.newMoneyStart != null ">
+                <![CDATA[  and yonghu.new_money >= #{params.newMoneyStart}   ]]>
+            </if>
+            <if test="params.newMoneyEnd != null ">
+                <![CDATA[  and yonghu.new_money <= #{params.newMoneyEnd}   ]]>
+            </if>
+        </where>
+
+        order by a.${params.orderBy} desc 
+    </select>
+
+</mapper>
